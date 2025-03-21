@@ -12,3 +12,5 @@
    threshold is exceeded; increments the counter if allowed.
 6. Writes to Kafka Topic: Outputs messages with the URL and crawl permissions for further processing.
 7. Send url with error description to dead-letter queue if any error occurs.
+
+![scheme](docs/scheme.png)

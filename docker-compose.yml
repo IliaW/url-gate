@@ -61,8 +61,8 @@ services:
       # blocks until kafka is reachable
       kafka-topics --bootstrap-server kafka:19092 --list
       echo -e 'Creating kafka topic'
-      kafka-topics --bootstrap-server kafka:19092 --create --if-not-exists --topic web-crawler-page-crawl-topic-v1-local --replication-factor 1 --partitions 3
-      kafka-topics --bootstrap-server kafka:19092 --create --if-not-exists --topic web-crawler-dead-letter-topic-v1-local --replication-factor 1 --partitions 3
+      kafka-topics --bootstrap-server kafka:19092 --create --if-not-exists --topic web-crawler-page-crawler-topic-v1-local --replication-factor 1 --partitions 3
+      kafka-topics --bootstrap-server kafka:19092 --create --if-not-exists --topic web-crawler-dlq-topic-v1-local --replication-factor 1 --partitions 3
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:19092 --list
       "

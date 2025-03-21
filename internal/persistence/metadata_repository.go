@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log/slog"
 
+	"github.com/IliaW/url-gate/internal"
 	"github.com/IliaW/url-gate/internal/model"
 )
 
@@ -21,8 +22,10 @@ func NewMetadataRepository(db *sql.DB) *MetadataRepository {
 
 // GetLastCrawl returns the last created crawl metadata for the given URL.
 func (mr *MetadataRepository) GetLastCrawl(url string) *model.Page {
+	hashURL := internal.HashURL(url)
 	var pages []*model.Page
-	rows, err := mr.db.Query("SELECT url, e_tag FROM web_crawler.crawl_metadata WHERE url = $1 ORDER BY timestamp DESC LIMIT 1", url) // get by last timestamp
+	rows, err := mr.db.Query(`SELECT full_url, timestamp, e_tag 
+										FROM web_crawler.crawl_metadata WHERE url_hash = $1`, hashURL)
 	if err != nil {
 		slog.Error("failed to get crawled metadata from the database.", slog.String("err", err.Error()))
 		return nil
