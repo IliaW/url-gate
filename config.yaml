@@ -1,7 +1,7 @@
 env: "local" # Use 'local' for LocalStack
 log_level: "info"
 log_type: "text" # 'text' or 'json'. Text type has colorized error levels
-service_name: "web-crawler-worker"
+service_name: "url-gate-worker"
 port: "8080"
 version: "1.0.0"
 
@@ -53,8 +53,8 @@ sqs:
 kafka:
   producer:
     addr: "kafka:9092"
-    write_topic_name: "web-crawler-page-crawl-topic-v1-local"
-    dlq_topic_name: "web-crawler-dead-letter-topic-v1-local"
+    write_topic_name: "web-crawler-page-crawler-topic-v1-local"
+    dlq_topic_name: "web-crawler-dlq-topic-v1-local"
     max_attempts: 3 # Number of attempts to send a message to Kafka
     batch_size: 100 # Number of messages to batch before sending to Kafka
     batch_timeout: "2s" # The time after which messages will be sent to Kafka, even if the batch_size has not been reached (has custom implementation)

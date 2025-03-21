@@ -7,8 +7,8 @@ ALTER DATABASE web_crawler_rds_psql SET search_path TO web_crawler;
 
 CREATE TABLE IF NOT EXISTS web_crawler.crawl_metadata
 (
-    id                   SERIAL PRIMARY KEY,
-    url                  VARCHAR(1000) NOT NULL,
+    url_hash             VARCHAR(64) UNIQUE PRIMARY KEY,
+    full_url             VARCHAR(1000) NOT NULL,
     time_to_crawl        INT           NOT NULL, -- in milliseconds
     timestamp            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status               VARCHAR(1000) NOT NULL, -- may contain an error message

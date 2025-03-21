@@ -1,8 +1,6 @@
 package cache
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/IliaW/url-gate/config"
+	"github.com/IliaW/url-gate/internal"
 	"github.com/bradfitz/gomemcache/memcache"
 )
 
@@ -55,7 +54,7 @@ func NewMemcachedClient(cacheConfig *config.CacheConfig) *MemcachedClient {
 }
 
 func (mc *MemcachedClient) CheckIfCrawled(url string) bool {
-	key := hashURL(url)
+	key := internal.HashURL(url)
 	it, err := mc.client.Get(key)
 	if err != nil {
 		if errors.Is(err, memcache.ErrCacheMiss) {
@@ -138,17 +137,11 @@ func (mc *MemcachedClient) generateDomainHash(url string) string {
 	if err != nil {
 		slog.Error("failed to parse url. Use full url as a key.", slog.String("url", url),
 			slog.String("err", err.Error()))
-		key = fmt.Sprintf("%s-1m-crawl", hashURL(url))
+		key = fmt.Sprintf("%s-1m-crawl", internal.HashURL(url))
 	} else {
-		key = fmt.Sprintf("%s-1m-crawl", hashURL(u.Host))
+		key = fmt.Sprintf("%s-1m-crawl", internal.HashURL(u.Host))
 		slog.Debug("", slog.String("key:", key))
 	}
 
 	return key
-}
-
-func hashURL(url string) string {
-	hash := sha256.New()
-	hash.Write([]byte(url))
-	return hex.EncodeToString(hash.Sum(nil))
 }
