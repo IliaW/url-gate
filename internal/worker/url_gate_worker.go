@@ -18,6 +18,7 @@ import (
 	"github.com/IliaW/url-gate/internal/model"
 	"github.com/IliaW/url-gate/internal/persistence"
 	"github.com/IliaW/url-gate/internal/telemetry"
+	"github.com/PuerkitoBio/purell"
 	"golang.org/x/time/rate"
 )
 
@@ -53,6 +54,16 @@ func (w *UrlGateWorker) Run() {
 			w.Metrics.FailedProcessedMsgCounter(1)
 			continue
 		}
+
+		normUrl, err := purell.NormalizeURLString(task.URL, purell.FlagsSafe|purell.FlagSortQuery)
+		if err != nil {
+			slog.Error("failed to normalize the url.", slog.String("url", task.URL),
+				slog.String("err", err.Error()))
+			w.KafkaDLQ.SendUrlToDLQ(*str, err)
+			w.Metrics.FailedProcessedMsgCounter(1)
+			continue
+		}
+		task.URL = normUrl
 
 		// Check memcached if the url has been crawled (Key: url-hash)
 		if w.Cache.CheckIfCrawled(task.URL) {

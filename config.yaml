@@ -13,7 +13,7 @@ worker:
   s3_retention_days: 7 # s3 retention period for crawl
 
 rule_api:
-  full_url: "http://localhost:8081/rule-api/v1/is-allowed?url=%s&user_agent=%s"
+  full_url: "http://localhost:8081/rule/v1/crawl-allowed?url=%s&user_agent=%s"
   default_crawl_allowed: true # If a connection to rule api fails, workers will use the default setting. The 'false' value will produce a load on CommonCrawl
 
 http_client:
