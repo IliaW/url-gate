@@ -3,6 +3,7 @@ module github.com/IliaW/url-gate
 go 1.24.1
 
 require (
+	github.com/PuerkitoBio/purell v1.2.1
 	github.com/aws/aws-sdk-go-v2/config v1.29.9
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.62
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.38.1
