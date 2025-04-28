@@ -16,6 +16,7 @@ type CrawlTask struct {
 
 type RuleApiResponse struct {
 	IsAllowed  bool   `json:"is_allowed"`
+	Blocked    bool   `json:"blocked"`     // is domain blocked from scraping and classification
 	StatusCode int    `json:"status_code"` // status code from the request to the URL that rule-api received
 	Error      string `json:"error"`       // error body from the request to the URL that rule-api received
 }

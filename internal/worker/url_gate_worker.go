@@ -95,7 +95,7 @@ func (w *UrlGateWorker) Run() {
 	SkipDbVerification:
 		// Request to rule api service
 		ruleUrl := fmt.Sprintf(w.Cfg.RuleApiSettings.FullURL, task.URL, w.Cfg.WorkerSettings.UserAgent)
-		isAllowed, err := w.isAllowedToCrawl(ruleUrl)
+		ruleResponse, err := w.requestToRuleApi(ruleUrl)
 		if err != nil {
 			if errors.Is(err, NoSuchHostError) {
 				slog.Error("skip the URL. No such host error.", slog.String("url", task.URL))
@@ -104,7 +104,12 @@ func (w *UrlGateWorker) Run() {
 			w.Metrics.FailedProcessedMsgCounter(1)
 			continue
 		}
-		task.IsAllowedToCrawl = isAllowed
+		if ruleResponse.Blocked {
+			slog.Info("domain is blocked by custom rules. Skip scraping and classification.",
+				slog.String("url", task.URL))
+			continue
+		}
+		task.IsAllowedToCrawl = ruleResponse.IsAllowed
 
 		// Increment the threshold for the domain
 		if err := w.Cache.IncrementThreshold(task.URL); err != nil {
@@ -142,12 +147,16 @@ func (w *UrlGateWorker) etagRequest(url string, etag string) (int, error) {
 	return resp.StatusCode, nil
 }
 
-// isAllowedToCrawl checks if the url is allowed to crawl by the rule api service.
+// requestToRuleApi checks if the url is allowed to crawl by the rule api service.
 // Some sites do not have robots.txt. Some link may be blocked or do not work. Or request may fail due to timeout.
 // For the cases defaultResponse value from config.yaml (true/false) is used.
-func (w *UrlGateWorker) isAllowedToCrawl(ruleUrl string) (bool, error) {
+// If request fails, the blocked value is set to false.
+func (w *UrlGateWorker) requestToRuleApi(ruleUrl string) (*model.RuleApiResponse, error) {
 	slog.Debug("request to rule api service.")
-	defaultResponse := w.Cfg.RuleApiSettings.DefaultCrawlAllowed
+	defaultResponse := &model.RuleApiResponse{
+		IsAllowed: w.Cfg.RuleApiSettings.DefaultCrawlAllowed,
+		Blocked:   false,
+	}
 
 	ruleReq, err := http.NewRequest("GET", ruleUrl, nil)
 	if err != nil {
@@ -192,7 +201,7 @@ func (w *UrlGateWorker) isAllowedToCrawl(ruleUrl string) (bool, error) {
 			slog.String("body", strBody))
 		// filter not existing hosts
 		if strings.Contains(strBody, "no such host") {
-			return false, NoSuchHostError
+			return nil, NoSuchHostError
 		}
 		return defaultResponse, nil
 	}
@@ -213,7 +222,7 @@ func (w *UrlGateWorker) isAllowedToCrawl(ruleUrl string) (bool, error) {
 	}
 
 	slog.Debug("rule api response.", slog.String("ruleUrl", ruleUrl), slog.Any("response", ruleApiResponse))
-	return ruleApiResponse.IsAllowed, nil
+	return &ruleApiResponse, nil
 }
 
 func isSuccess(statusCode int) bool {
